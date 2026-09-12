@@ -61,7 +61,8 @@ const sessions = days
   .filter((d) => d.workouts > 0)
   .slice()
   .reverse()
-  .flatMap((d) => (d.types.length ? d.types : ['workout']).map((type) => ({ date: d.date, type })));
+  .flatMap((d) => (d.types.length ? d.types : ['workout']).map((type) => ({ date: d.date, type })))
+  .slice(0, 5);
 
 function niceDate(iso: string) {
   return new Date(iso + 'T00:00:00').toLocaleDateString('en-CA', {
