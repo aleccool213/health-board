@@ -2,6 +2,8 @@
 
 Public weekly Apple Watch board. Friends can open the site with no account.
 
+Live: https://health-board-delta.vercel.app
+
 Daily Health.md notes live in Google Drive (`health.md backups`). This repo only stores **weekly averages**.
 
 ## Published fields
@@ -15,6 +17,8 @@ Daily Health.md notes live in Google Drive (`health.md backups`). This repo only
 - active kcal (sum)
 
 Not published: GPS, medications, bedtime, SpO2, wrist temperature, raw daily files.
+
+Tap the ? beside a stat for a plain-English explainer.
 
 ## Update
 
