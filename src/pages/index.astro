@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Stat from '../components/Stat.astro';
+import WorkoutGraph from '../components/WorkoutGraph.astro';
 
 const weeks = (await getCollection('weeks')).sort(
   (a, b) => b.data.start.getTime() - a.data.start.getTime()
@@ -47,6 +48,8 @@ const rhrSpark = spark(chrono.map((w) => w.data.resting_hr_avg));
       </div>
     </>
   )}
+
+  <WorkoutGraph />
 
   <h2 style="margin-top:2rem;font-size:1rem;color:var(--muted);font-weight:500;">Trend</h2>
   <div class="grid" style="margin-top:0.6rem;">

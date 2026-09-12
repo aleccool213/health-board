@@ -103,4 +103,20 @@ const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astr
   .badge { font-size: 0.7rem; color: var(--warn); border: 1px solid var(--warn); border-radius: 999px; padding: 0.1rem 0.45rem; }
   article { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem 1.35rem; line-height: 1.55; }
   .spark { width: 100%; height: 36px; }
+  .workouts { margin-top: 2rem; }
+  .workouts-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.85rem; }
+  .workouts-head h2 { font-size: 1rem; color: var(--muted); font-weight: 500; margin: 0; }
+  .workouts-head p { color: var(--muted); font-size: 0.85rem; margin: 0; }
+  .graph-wrap { display: flex; gap: 0.45rem; overflow-x: auto; padding-bottom: 0.4rem; }
+  .dow { display: grid; grid-template-rows: 16px repeat(7, 12px); gap: 3px; color: var(--muted); font-size: 0.65rem; }
+  .dow span { display: flex; align-items: center; }
+  .months { display: grid; gap: 3px; color: var(--muted); font-size: 0.65rem; height: 16px; margin-bottom: 3px; }
+  .graph { display: grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; grid-auto-columns: 12px; gap: 3px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 0; padding: 0; display: block; cursor: pointer; position: relative; }
+  .dot.l0 { background: #222c28; }
+  .dot.l1 { background: #2f6f4a; }
+  .dot.l2 { background: #4aa36c; }
+  .dot.l3 { background: #7dcea0; }
+  .legend { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.7rem; color: var(--muted); font-size: 0.7rem; }
+  .legend .dot { cursor: default; }
 </style>
