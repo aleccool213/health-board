@@ -30,14 +30,52 @@ const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astr
         Public rollup only — no GPS, meds, or daily dumps. Tap the ? beside a stat for a plain-English explainer.
       </footer>
     </div>
+    <div id="float-tip" hidden></div>
     <script>
+      const tip = document.getElementById("float-tip");
+
+      function hideTip() {
+        if (!tip) return;
+        tip.hidden = true;
+        tip.textContent = "";
+        document.querySelectorAll(".hint.open").forEach((el) => el.classList.remove("open"));
+      }
+
+      function showTip(btn) {
+        if (!tip) return;
+        const text = btn.getAttribute("data-tip");
+        if (!text) return;
+        document.querySelectorAll(".hint.open").forEach((el) => el.classList.remove("open"));
+        btn.classList.add("open");
+        tip.hidden = false;
+        tip.textContent = text;
+        const pad = 10;
+        const r = btn.getBoundingClientRect();
+        const tw = tip.offsetWidth;
+        const th = tip.offsetHeight;
+        let left = r.left + r.width / 2 - tw / 2;
+        left = Math.max(pad, Math.min(left, window.innerWidth - tw - pad));
+        let top = r.bottom + 8;
+        if (top + th > window.innerHeight - pad) top = r.top - th - 8;
+        if (top < pad) top = pad;
+        tip.style.left = `${left}px`;
+        tip.style.top = `${top}px`;
+      }
+
       document.addEventListener("click", (event) => {
         const t = event.target;
         if (!(t instanceof HTMLElement)) return;
-        const open = document.querySelector(".hint.open");
-        if (open && open !== t) open.classList.remove("open");
-        if (t.classList.contains("hint")) t.classList.toggle("open");
+        const btn = t.closest(".hint");
+        if (btn instanceof HTMLElement) {
+          if (btn.classList.contains("open")) hideTip();
+          else showTip(btn);
+          return;
+        }
+        hideTip();
       });
+
+      window.addEventListener("scroll", hideTip, { passive: true });
+      window.addEventListener("resize", hideTip);
     </script>
   </body>
 </html>
@@ -53,70 +91,140 @@ const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astr
     --warn: #e6c07b;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    overflow-x: clip;
+    max-width: 100%;
+  }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .shell { max-width: 840px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
-  .top { margin-bottom: 2rem; }
+  .shell { max-width: 840px; margin: 0 auto; padding: 2rem 1rem 3.5rem; overflow-x: clip; }
+  .top { margin-bottom: 1.5rem; }
   .mark { font-weight: 600; letter-spacing: 0.02em; color: var(--ink); font-size: 1.05rem; }
   .lede { color: var(--muted); margin: 0.4rem 0 0; }
   footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
-  h1 { font-size: 1.6rem; font-weight: 600; margin: 0 0 0.35rem; }
-  .sub { color: var(--muted); margin: 0 0 1.5rem; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; }
-  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.9rem 1rem; }
-  .tile .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 0.35rem; }
-  .tile .v { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.35rem; margin-top: 0.25rem; }
+  h1 { font-size: 1.45rem; font-weight: 600; margin: 0 0 0.35rem; }
+  .sub { color: var(--muted); margin: 0 0 1.25rem; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+  @media (min-width: 640px) {
+    .shell { padding: 2.5rem 1.25rem 4rem; }
+    .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    h1 { font-size: 1.6rem; }
+  }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.85rem 0.9rem; min-width: 0; }
+  .tile .k { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 0.35rem; }
+  .tile .v { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.25rem; margin-top: 0.25rem; }
   .tile .u { color: var(--muted); font-size: 0.8rem; }
-  .hint { position: relative; width: 1.05rem; height: 1.05rem; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 0.7rem/1 "IBM Plex Sans", system-ui, sans-serif; cursor: pointer; padding: 0; }
+  .hint {
+    flex: 0 0 auto;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    font: 600 0.7rem/1 "IBM Plex Sans", system-ui, sans-serif;
+    cursor: pointer;
+    padding: 0;
+  }
   .hint:hover, .hint:focus-visible, .hint.open { border-color: var(--accent); color: var(--accent); }
-  .hint::after {
-    content: attr(data-tip);
-    position: absolute;
-    left: 0;
-    top: calc(100% + 8px);
-    width: min(240px, 70vw);
+  #float-tip {
+    position: fixed;
+    z-index: 40;
+    max-width: min(260px, calc(100vw - 20px));
     background: #0b100e;
     color: var(--ink);
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 0.55rem 0.65rem;
-    font-size: 0.75rem;
-    font-weight: 400;
-    letter-spacing: 0;
-    text-transform: none;
+    font-size: 0.8rem;
     line-height: 1.4;
-    z-index: 5;
-    box-shadow: 0 8px 24px rgba(0,0,0,.35);
-    opacity: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
     pointer-events: none;
-    transform: translateY(-4px);
-    transition: opacity .12s ease, transform .12s ease;
-  }
-  .hint:hover::after, .hint:focus-visible::after, .hint.open::after {
-    opacity: 1;
-    transform: none;
   }
   .list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.5rem; }
-  .row { display: grid; grid-template-columns: 7rem 1fr auto; gap: 0.75rem; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0.8rem 1rem; color: inherit; }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.2rem 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    color: inherit;
+  }
+  @media (min-width: 640px) {
+    .row { grid-template-columns: 7rem 1fr auto; align-items: center; }
+  }
   .row:hover { border-color: var(--accent); text-decoration: none; }
-  .badge { font-size: 0.7rem; color: var(--warn); border: 1px solid var(--warn); border-radius: 999px; padding: 0.1rem 0.45rem; }
-  article { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem 1.35rem; line-height: 1.55; }
+  .badge { font-size: 0.7rem; color: var(--warn); border: 1px solid var(--warn); border-radius: 999px; padding: 0.1rem 0.45rem; width: max-content; }
+  article { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.15rem; line-height: 1.55; }
   .spark { width: 100%; height: 36px; }
   .workouts { margin-top: 2rem; }
-  .workouts-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.85rem; }
+  .workouts-head { display: flex; flex-direction: column; gap: 0.2rem; margin-bottom: 0.85rem; }
+  @media (min-width: 640px) {
+    .workouts-head { flex-direction: row; align-items: baseline; justify-content: space-between; }
+  }
   .workouts-head h2 { font-size: 1rem; color: var(--muted); font-weight: 500; margin: 0; }
   .workouts-head p { color: var(--muted); font-size: 0.85rem; margin: 0; }
-  .graph-wrap { display: flex; gap: 0.45rem; overflow-x: auto; padding-bottom: 0.4rem; }
-  .dow { display: grid; grid-template-rows: 16px repeat(7, 12px); gap: 3px; color: var(--muted); font-size: 0.65rem; }
+  .graph-wrap {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    gap: 0.4rem;
+    width: 100%;
+    max-width: 100%;
+  }
+  .graph-panel { min-width: 0; }
+  .dow {
+    display: grid;
+    grid-template-rows: 16px repeat(7, minmax(0, 1fr));
+    gap: 3px;
+    color: var(--muted);
+    font-size: 0.62rem;
+  }
   .dow span { display: flex; align-items: center; }
-  .months { display: grid; gap: 3px; color: var(--muted); font-size: 0.65rem; height: 16px; margin-bottom: 3px; }
-  .graph { display: grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; grid-auto-columns: 12px; gap: 3px; }
-  .dot { width: 12px; height: 12px; border-radius: 3px; border: 0; padding: 0; display: block; cursor: pointer; position: relative; }
+  .months {
+    display: grid;
+    grid-template-columns: repeat(var(--weeks, 13), minmax(0, 1fr));
+    gap: 3px;
+    color: var(--muted);
+    font-size: 0.62rem;
+    height: 16px;
+    margin-bottom: 3px;
+  }
+  .months span { overflow: hidden; white-space: nowrap; }
+  .graph {
+    display: grid;
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 3px;
+    width: 100%;
+  }
+  .dot {
+    width: 100%;
+    aspect-ratio: 1;
+    height: auto;
+    border-radius: 3px;
+    border: 0;
+    padding: 0;
+    display: block;
+    cursor: pointer;
+    min-width: 0;
+  }
   .dot.l0 { background: #222c28; }
   .dot.l1 { background: #2f6f4a; }
   .dot.l2 { background: #4aa36c; }
   .dot.l3 { background: #7dcea0; }
   .legend { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.7rem; color: var(--muted); font-size: 0.7rem; }
-  .legend .dot { cursor: default; }
+  .legend .dot { width: 11px; height: 11px; cursor: default; aspect-ratio: auto; }
+  .graph-caption {
+    margin: 0.65rem 0 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    min-height: 1.2em;
+  }
 </style>
