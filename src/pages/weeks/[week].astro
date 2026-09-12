@@ -15,8 +15,8 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
 ---
-<Base title={`${d.week} · Health board`}>
-  <p><a href="/">← Board</a></p>
+<Base title={`${d.week} · Alec Brunelle’s health tracker`}>
+  <p><a href="/">← Tracker</a></p>
   <h1>{d.week}</h1>
   <p class="sub">
     {d.start.toISOString().slice(0, 10)} – {d.end.toISOString().slice(0, 10)}

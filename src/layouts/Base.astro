@@ -3,7 +3,7 @@ interface Props {
   title: string;
   description?: string;
 }
-const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astro.props;
+const { title, description = "Alec Brunelle's health tracker — weekly Apple Watch averages." } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
@@ -20,14 +20,14 @@ const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astr
   <body>
     <div class="shell">
       <header class="top">
-        <a class="mark" href="/">Health board</a>
-        <p class="lede">Weekly averages from Apple Watch. Raw days stay off this site.</p>
+        <a class="mark" href="/">Alec Brunelle’s health tracker</a>
+        <p class="lede">A public weekly snapshot from Apple Watch. Daily notes stay private.</p>
       </header>
       <main>
         <slot />
       </main>
       <footer>
-        Public rollup only — no GPS, meds, or daily dumps. Tap the ? beside a stat for a plain-English explainer.
+        Apple Watch writes daily notes through Health.md. Once a week those days are rolled into averages and published here — no GPS, meds, or raw dumps. Tap a ? for what each stat means.
       </footer>
     </div>
     <div id="float-tip" hidden></div>
@@ -104,8 +104,8 @@ const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astr
   .shell { max-width: 840px; margin: 0 auto; padding: 2rem 1rem 3.5rem; overflow-x: clip; }
   .top { margin-bottom: 1.5rem; }
   .mark { font-weight: 600; letter-spacing: 0.02em; color: var(--ink); font-size: 1.05rem; }
-  .lede { color: var(--muted); margin: 0.4rem 0 0; }
-  footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
+  .lede { color: var(--muted); margin: 0.4rem 0 0; line-height: 1.45; }
+  footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
   h1 { font-size: 1.45rem; font-weight: 600; margin: 0 0 0.35rem; }
   .sub { color: var(--muted); margin: 0 0 1.25rem; }
   .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
