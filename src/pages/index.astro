@@ -29,7 +29,7 @@ const stepSpark = spark(chrono.map((w) => w.data.steps_avg));
 const sleepSpark = spark(chrono.filter((w) => w.data.sleep_hours_avg != null).map((w) => w.data.sleep_hours_avg as number));
 const rhrSpark = spark(chrono.map((w) => w.data.resting_hr_avg));
 ---
-<Base title="Health board">
+<Base title="Alec Brunelle’s health tracker">
   {latest && (
     <>
       <h1>{latest.data.week}{latest.data.partial && ' · in progress'}</h1>
@@ -68,8 +68,8 @@ const rhrSpark = spark(chrono.map((w) => w.data.resting_hr_avg));
   </div>
 
   <h2 style="margin-top:2rem;font-size:1rem;color:var(--muted);font-weight:500;">Weeks</h2>
-  <div class="list" id="week-list" data-page-size="5">
-    {weeks.map((w) => (
+  <div class="list">
+    {weeks.slice(0, 5).map((w) => (
       <a class="row" href={`/weeks/${w.data.week}`}>
         <strong>{w.data.week}</strong>
         <span style="color:var(--muted)">{w.data.steps_avg.toLocaleString()} steps/day · {w.data.workouts} workouts</span>
@@ -77,46 +77,4 @@ const rhrSpark = spark(chrono.map((w) => w.data.resting_hr_avg));
       </a>
     ))}
   </div>
-  <style>
-    .pager { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.85rem; color: var(--muted); font-size: 0.85rem; }
-    .pager button { background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 0.45rem 0.75rem; font: inherit; cursor: pointer; }
-    .pager button:disabled { opacity: 0.4; cursor: default; }
-    .pager button:not(:disabled):hover { border-color: var(--accent); }
-  </style>
-  <div class="pager" id="week-pager" hidden>
-    <button type="button" data-dir="-1">Newer</button>
-    <span data-status></span>
-    <button type="button" data-dir="1">Older</button>
-  </div>
-  <script>
-    const list = document.getElementById("week-list");
-    const pager = document.getElementById("week-pager");
-    if (list && pager) {
-      const rows = [...list.querySelectorAll(".row")];
-      const size = Number(list.dataset.pageSize) || 5;
-      const pages = Math.max(1, Math.ceil(rows.length / size));
-      let page = 0;
-      const status = pager.querySelector("[data-status]");
-      const buttons = pager.querySelectorAll("button");
-
-      function render() {
-        rows.forEach((row, i) => {
-          row.toggleAttribute("hidden", i < page * size || i >= (page + 1) * size);
-        });
-        if (status) status.textContent = `${page + 1} / ${pages}`;
-        buttons[0]?.toggleAttribute("disabled", page === 0);
-        buttons[1]?.toggleAttribute("disabled", page >= pages - 1);
-        pager.hidden = pages <= 1;
-      }
-
-      pager.addEventListener("click", (event) => {
-        const btn = event.target instanceof HTMLElement ? event.target.closest("button") : null;
-        if (!btn || btn.disabled) return;
-        page = Math.min(pages - 1, Math.max(0, page + Number(btn.dataset.dir)));
-        render();
-      });
-
-      render();
-    }
-  </script>
 </Base>
