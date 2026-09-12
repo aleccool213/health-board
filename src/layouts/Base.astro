@@ -27,9 +27,18 @@ const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astr
         <slot />
       </main>
       <footer>
-        Public rollup only — no GPS, meds, or daily dumps.
+        Public rollup only — no GPS, meds, or daily dumps. Tap the ? beside a stat for a plain-English explainer.
       </footer>
     </div>
+    <script>
+      document.addEventListener("click", (event) => {
+        const t = event.target;
+        if (!(t instanceof HTMLElement)) return;
+        const open = document.querySelector(".hint.open");
+        if (open && open !== t) open.classList.remove("open");
+        if (t.classList.contains("hint")) t.classList.toggle("open");
+      });
+    </script>
   </body>
 </html>
 
@@ -56,9 +65,38 @@ const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astr
   .sub { color: var(--muted); margin: 0 0 1.5rem; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; }
   .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.9rem 1rem; }
-  .tile .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .tile .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 0.35rem; }
   .tile .v { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.35rem; margin-top: 0.25rem; }
   .tile .u { color: var(--muted); font-size: 0.8rem; }
+  .hint { position: relative; width: 1.05rem; height: 1.05rem; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 0.7rem/1 "IBM Plex Sans", system-ui, sans-serif; cursor: pointer; padding: 0; }
+  .hint:hover, .hint:focus-visible, .hint.open { border-color: var(--accent); color: var(--accent); }
+  .hint::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 0;
+    top: calc(100% + 8px);
+    width: min(240px, 70vw);
+    background: #0b100e;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.55rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.4;
+    z-index: 5;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  .hint:hover::after, .hint:focus-visible::after, .hint.open::after {
+    opacity: 1;
+    transform: none;
+  }
   .list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.5rem; }
   .row { display: grid; grid-template-columns: 7rem 1fr auto; gap: 0.75rem; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0.8rem 1rem; color: inherit; }
   .row:hover { border-color: var(--accent); text-decoration: none; }

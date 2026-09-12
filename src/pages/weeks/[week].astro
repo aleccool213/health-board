@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Stat from '../../components/Stat.astro';
 
 export async function getStaticPaths() {
   const weeks = await getCollection('weeks');
@@ -22,14 +23,14 @@ const d = entry.data;
     {d.partial && ' · partial week'}
   </p>
   <div class="grid">
-    <div class="tile"><div class="k">Steps / day</div><div class="v">{d.steps_avg.toLocaleString()}</div></div>
-    <div class="tile"><div class="k">Sleep</div><div class="v">{d.sleep_hours_avg ?? '—'}</div></div>
-    <div class="tile"><div class="k">Resting HR</div><div class="v">{d.resting_hr_avg}</div></div>
-    <div class="tile"><div class="k">HRV</div><div class="v">{d.hrv_avg}</div></div>
-    <div class="tile"><div class="k">Exercise min</div><div class="v">{d.exercise_min_total}</div></div>
-    <div class="tile"><div class="k">Workouts</div><div class="v">{d.workouts}</div></div>
-    <div class="tile"><div class="k">Active kcal</div><div class="v">{d.active_kcal_total.toLocaleString()}</div></div>
-    <div class="tile"><div class="k">Days logged</div><div class="v">{d.days}</div></div>
+    <Stat label="Steps / day" value={d.steps_avg.toLocaleString()} tip="Average steps walked each day that week. A rough picture of how much he moved around." />
+    <Stat label="Sleep" value={d.sleep_hours_avg ?? '—'} unit="hours avg" tip="Average time actually asleep on nights that logged. Nights with no Watch sample are skipped." />
+    <Stat label="Resting HR" value={d.resting_hr_avg} unit="bpm" tip="How fast the heart beats when sitting still. Lower is generally fitter; illness and poor sleep can raise it." />
+    <Stat label="HRV" value={d.hrv_avg} unit="ms" tip="Heart rate variability — the tiny gaps between beats. Higher often means more recovered." />
+    <Stat label="Exercise min" value={d.exercise_min_total} tip="Apple Exercise minutes for the whole week. Time the Watch counted as elevated activity." />
+    <Stat label="Workouts" value={d.workouts} tip="Saved workout sessions that week. A walk only counts if it was started as a workout." />
+    <Stat label="Active kcal" value={d.active_kcal_total.toLocaleString()} tip="Calories Apple estimates from movement on top of resting burn, summed for the week." />
+    <Stat label="Days logged" value={d.days} tip="How many days in this Monday–Sunday week had a Health.md note." />
   </div>
   <article style="margin-top:1.25rem;">
     <Content />
