@@ -1,0 +1,68 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Weekly Apple Watch board. Averages only.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="top">
+        <a class="mark" href="/">Health board</a>
+        <p class="lede">Weekly averages from Apple Watch. Raw days stay off this site.</p>
+      </header>
+      <main>
+        <slot />
+      </main>
+      <footer>
+        Public rollup only — no GPS, meds, or daily dumps.
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #0f1412;
+    --card: #171e1b;
+    --ink: #e8efe9;
+    --muted: #8fa196;
+    --line: #2a3530;
+    --accent: #7dcea0;
+    --warn: #e6c07b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .shell { max-width: 840px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  .top { margin-bottom: 2rem; }
+  .mark { font-weight: 600; letter-spacing: 0.02em; color: var(--ink); font-size: 1.05rem; }
+  .lede { color: var(--muted); margin: 0.4rem 0 0; }
+  footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
+  h1 { font-size: 1.6rem; font-weight: 600; margin: 0 0 0.35rem; }
+  .sub { color: var(--muted); margin: 0 0 1.5rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.9rem 1rem; }
+  .tile .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .tile .v { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.35rem; margin-top: 0.25rem; }
+  .tile .u { color: var(--muted); font-size: 0.8rem; }
+  .list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.5rem; }
+  .row { display: grid; grid-template-columns: 7rem 1fr auto; gap: 0.75rem; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0.8rem 1rem; color: inherit; }
+  .row:hover { border-color: var(--accent); text-decoration: none; }
+  .badge { font-size: 0.7rem; color: var(--warn); border: 1px solid var(--warn); border-radius: 999px; padding: 0.1rem 0.45rem; }
+  article { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem 1.35rem; line-height: 1.55; }
+  .spark { width: 100%; height: 36px; }
+</style>

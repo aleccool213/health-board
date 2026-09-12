@@ -1,0 +1,37 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const weeks = await getCollection('weeks');
+  return weeks.map((entry) => ({
+    params: { week: entry.data.week },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+---
+<Base title={`${d.week} · Health board`}>
+  <p><a href="/">← Board</a></p>
+  <h1>{d.week}</h1>
+  <p class="sub">
+    {d.start.toISOString().slice(0, 10)} – {d.end.toISOString().slice(0, 10)}
+    {d.partial && ' · partial week'}
+  </p>
+  <div class="grid">
+    <div class="tile"><div class="k">Steps / day</div><div class="v">{d.steps_avg.toLocaleString()}</div></div>
+    <div class="tile"><div class="k">Sleep</div><div class="v">{d.sleep_hours_avg ?? '—'}</div></div>
+    <div class="tile"><div class="k">Resting HR</div><div class="v">{d.resting_hr_avg}</div></div>
+    <div class="tile"><div class="k">HRV</div><div class="v">{d.hrv_avg}</div></div>
+    <div class="tile"><div class="k">Exercise min</div><div class="v">{d.exercise_min_total}</div></div>
+    <div class="tile"><div class="k">Workouts</div><div class="v">{d.workouts}</div></div>
+    <div class="tile"><div class="k">Active kcal</div><div class="v">{d.active_kcal_total.toLocaleString()}</div></div>
+    <div class="tile"><div class="k">Days logged</div><div class="v">{d.days}</div></div>
+  </div>
+  <article style="margin-top:1.25rem;">
+    <Content />
+  </article>
+</Base>
