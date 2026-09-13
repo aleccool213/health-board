@@ -9,10 +9,17 @@ const { title, description = "Alec Brunelle's health tracker — weekly Apple Wa
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="icon" href="/favicon.svg" />
+    <meta name="theme-color" content="#0f1412" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Health tracker" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
@@ -76,6 +83,12 @@ const { title, description = "Alec Brunelle's health tracker — weekly Apple Wa
 
       window.addEventListener("scroll", hideTip, { passive: true });
       window.addEventListener("resize", hideTip);
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
     </script>
   </body>
 </html>
@@ -101,7 +114,7 @@ const { title, description = "Alec Brunelle's health tracker — weekly Apple Wa
   }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .shell { max-width: 840px; margin: 0 auto; padding: 2rem 1rem 3.5rem; overflow-x: clip; }
+  .shell { max-width: 840px; margin: 0 auto; padding: max(2rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(3.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); overflow-x: clip; }
   .top { margin-bottom: 1.5rem; }
   .mark { font-weight: 600; letter-spacing: 0.02em; color: var(--ink); font-size: 1.05rem; }
   .lede { color: var(--muted); margin: 0.4rem 0 0; line-height: 1.45; }
@@ -110,7 +123,7 @@ const { title, description = "Alec Brunelle's health tracker — weekly Apple Wa
   .sub { color: var(--muted); margin: 0 0 1.25rem; }
   .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
   @media (min-width: 640px) {
-    .shell { padding: 2.5rem 1.25rem 4rem; }
+    .shell { padding: 2.5rem max(1.25rem, env(safe-area-inset-right)) 4rem max(1.25rem, env(safe-area-inset-left)); }
     .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     h1 { font-size: 1.6rem; }
   }
