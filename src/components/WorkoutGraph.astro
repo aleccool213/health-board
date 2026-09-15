@@ -163,7 +163,7 @@ function niceDate(iso: string) {
     align-items: center;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 0;
     padding: 0.55rem 0.8rem;
   }
   .session-list strong { font-weight: 500; font-size: 0.95rem; }
@@ -171,11 +171,11 @@ function niceDate(iso: string) {
   .kind {
     width: 1.7rem;
     height: 1.7rem;
-    border-radius: 8px;
+    border-radius: 0;
     display: grid;
     place-items: center;
     color: var(--accent);
-    background: #1d2a23;
+    background: var(--kind);
   }
   .kind svg { width: 1rem; height: 1rem; display: block; }
 </style>
