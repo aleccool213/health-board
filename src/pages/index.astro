@@ -3,31 +3,68 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Stat from '../components/Stat.astro';
 import WorkoutGraph from '../components/WorkoutGraph.astro';
+import TrendChart from '../components/TrendChart.astro';
+import rawWorkouts from '../data/workouts.json';
+
+type Day = { date: string; workouts: number; types: string[] };
 
 const weeks = (await getCollection('weeks')).sort(
   (a, b) => b.data.start.getTime() - a.data.start.getTime()
 );
 const latest = weeks[0];
+const chrono = [...weeks].reverse();
 
-function spark(values: number[]) {
-  if (!values.length) return '';
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  const w = 120;
-  const h = 36;
-  const pts = values.map((v, i) => {
-    const x = values.length === 1 ? w / 2 : (i / (values.length - 1)) * w;
-    const y = h - 4 - ((v - min) / span) * (h - 8);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-  return pts.join(' ');
+function md(iso: Date) {
+  return `${iso.getUTCMonth() + 1}/${iso.getUTCDate()}`;
 }
 
-const chrono = [...weeks].reverse();
-const stepSpark = spark(chrono.map((w) => w.data.steps_avg));
-const sleepSpark = spark(chrono.filter((w) => w.data.sleep_hours_avg != null).map((w) => w.data.sleep_hours_avg as number));
-const rhrSpark = spark(chrono.map((w) => w.data.resting_hr_avg));
+const steps = chrono.map((w) => ({
+  label: md(w.data.start),
+  value: w.data.steps_avg,
+  tip: `${w.data.week} · ${w.data.steps_avg.toLocaleString()} steps/day`,
+}));
+const sleep = chrono.map((w) => ({
+  label: md(w.data.start),
+  value: w.data.sleep_hours_avg,
+  tip:
+    w.data.sleep_hours_avg == null
+      ? `${w.data.week} · no sleep nights logged`
+      : `${w.data.week} · ${w.data.sleep_hours_avg.toFixed(2)} h avg`,
+}));
+const rhr = chrono.map((w) => ({
+  label: md(w.data.start),
+  value: w.data.resting_hr_avg,
+  tip: `${w.data.week} · ${w.data.resting_hr_avg} bpm resting`,
+}));
+const hrv = chrono.map((w) => ({
+  label: md(w.data.start),
+  value: w.data.hrv_avg,
+  tip: `${w.data.week} · ${w.data.hrv_avg} ms HRV`,
+}));
+const exercise = chrono.map((w) => ({
+  label: md(w.data.start),
+  value: w.data.exercise_min_total,
+  tip: `${w.data.week} · ${w.data.exercise_min_total} exercise min · ${w.data.workouts} workouts`,
+}));
+
+const labels: Record<string, string> = {
+  'strength-training': 'Strength',
+  rowing: 'Row',
+  yoga: 'Yoga',
+  walking: 'Walk',
+  running: 'Run',
+};
+const days = rawWorkouts as Day[];
+const daily = days.slice(-56).map((d) => {
+  const pretty = d.types.map((t) => labels[t] || t).join(', ');
+  return {
+    label: `${Number(d.date.slice(5, 7))}/${Number(d.date.slice(8, 10))}`,
+    value: d.workouts,
+    tip: d.workouts
+      ? `${d.date} · ${d.workouts} workout${d.workouts === 1 ? '' : 's'}${pretty ? ' · ' + pretty : ''}`
+      : `${d.date} · rest`,
+  };
+});
 ---
 <Base title="Alec Brunelle’s health tracker">
   {latest && (
@@ -51,23 +88,16 @@ const rhrSpark = spark(chrono.map((w) => w.data.resting_hr_avg));
 
   <WorkoutGraph />
 
-  <h2 style="margin-top:2rem;font-size:1rem;color:var(--muted);font-weight:500;">Trend</h2>
-  <div class="grid" style="margin-top:0.6rem;">
-    <div class="tile">
-      <div class="k">Steps</div>
-      <svg class="spark" viewBox="0 0 120 36" aria-hidden="true"><polyline fill="none" stroke="var(--accent)" stroke-width="2" points={stepSpark} /></svg>
-    </div>
-    <div class="tile">
-      <div class="k">Sleep</div>
-      <svg class="spark" viewBox="0 0 120 36" aria-hidden="true"><polyline fill="none" stroke="var(--accent)" stroke-width="2" points={sleepSpark} /></svg>
-    </div>
-    <div class="tile">
-      <div class="k">Resting HR</div>
-      <svg class="spark" viewBox="0 0 120 36" aria-hidden="true"><polyline fill="none" stroke="var(--accent)" stroke-width="2" points={rhrSpark} /></svg>
-    </div>
-  </div>
+  <h2 class="section-label">Trends</h2>
+  <p class="chart-note">Weekly averages published here. Daily Health.md notes stay private. Tap a point for the week.</p>
+  <TrendChart title="Steps / day" unit="weekly avg" kind="area" format="k" points={steps} />
+  <TrendChart title="Sleep" unit="hours avg" kind="line" format="fixed1" points={sleep} />
+  <TrendChart title="Resting HR" unit="bpm" kind="line" format="int" points={rhr} />
+  <TrendChart title="HRV" unit="ms" kind="line" format="int" points={hrv} />
+  <TrendChart title="Exercise minutes" unit="sum for the week" kind="bar" format="int" points={exercise} />
+  <TrendChart title="Workouts by day" unit="last 8 weeks" kind="bar" format="int" points={daily} />
 
-  <h2 style="margin-top:2rem;font-size:1rem;color:var(--muted);font-weight:500;">Weeks</h2>
+  <h2 class="section-label">Weeks</h2>
   <div class="list">
     {weeks.slice(0, 5).map((w) => (
       <a class="row" href={`/weeks/${w.data.week}`}>
