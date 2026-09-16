@@ -1,264 +1,261 @@
 ---
+import { VAPID_PUBLIC_KEY } from "../lib/push-vapid";
 ---
 <aside class="remind" id="remind-bar">
   <div class="remind-copy">
     <strong>Weekly import</strong>
-    <span id="remind-status">Sunday 9:00 reminder is off.</span>
+    <span id="remind-status">Same path as Split Log: allow, subscribe, Sunday cron from Vercel.</span>
   </div>
+  <dl class="remind-meta" id="remind-meta">
+    <div><dt>This device</dt><dd id="remind-device">…</dd></div>
+    <div><dt>Permission</dt><dd id="remind-perm">…</dd></div>
+    <div><dt>Redis</dt><dd id="remind-kv">…</dd></div>
+    <div><dt>VAPID</dt><dd id="remind-vapid">…</dd></div>
+  </dl>
+  <p class="remind-hint" id="remind-hint"></p>
+  <p class="remind-error" id="remind-error" hidden></p>
   <div class="remind-actions">
-    <button type="button" id="remind-toggle">Enable</button>
-    <button type="button" id="remind-test" hidden>Test</button>
+    <button type="button" id="remind-enable">Allow + subscribe</button>
+    <button type="button" id="remind-local">Local test</button>
+    <button type="button" id="remind-server">Send server test</button>
   </div>
 </aside>
 
-<script>
-  const STORAGE_KEY = "health-board-sunday-reminder";
-  const TZ = "America/Toronto";
-  const HOUR = 9;
-  const MINUTE = 0;
+<script define:vars={{ vapidPublic: VAPID_PUBLIC_KEY }}>
+  const PUBLIC_KEY = vapidPublic;
 
-  const statusEl = document.getElementById("remind-status");
-  const toggleEl = document.getElementById("remind-toggle");
-  const testEl = document.getElementById("remind-test");
-  const bar = document.getElementById("remind-bar");
-
-  function enabled() {
-    try {
-      return localStorage.getItem(STORAGE_KEY) === "on";
-    } catch {
-      return false;
+  function isIosDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+  function isStandalonePwa() {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.matchMedia("(display-mode: fullscreen)").matches ||
+      window.navigator.standalone === true
+    );
+  }
+  function hasNotificationApi() {
+    return typeof Notification !== "undefined";
+  }
+  function pushEnvironment() {
+    const ios = isIosDevice();
+    const standalone = isStandalonePwa();
+    const notify = hasNotificationApi();
+    const sw = "serviceWorker" in navigator;
+    if (ios && !standalone) {
+      return { kind: "needs-install", label: "Safari tab", hint: "Open the Home Screen Health board icon. Safari tabs cannot allow notifications." };
     }
-  }
-
-  function setEnabled(on: boolean) {
-    try {
-      localStorage.setItem(STORAGE_KEY, on ? "on" : "off");
-    } catch {}
-  }
-
-  function torontoParts(date = new Date()) {
-    const fmt = new Intl.DateTimeFormat("en-CA", {
-      timeZone: TZ,
-      weekday: "short",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    });
-    const bag: Record<string, string> = {};
-    for (const p of fmt.formatToParts(date)) {
-      if (p.type !== "literal") bag[p.type] = p.value;
+    if (notify && sw) {
+      return { kind: "ready", label: standalone ? "Installed PWA" : "Browser", hint: "Allow notifications, then send a test banner." };
     }
-    return {
-      weekday: bag.weekday,
-      year: Number(bag.year),
-      month: Number(bag.month),
-      day: Number(bag.day),
-      hour: Number(bag.hour),
-      minute: Number(bag.minute),
-    };
-  }
-
-  function isoWeek(year: number, month: number, day: number) {
-    const utc = Date.UTC(year, month - 1, day);
-    const d = new Date(utc);
-    const dow = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dow);
-    const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
-    const week = Math.ceil(((d.getTime() - yearStart) / 86400000 + 1) / 7);
-    return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
-  }
-
-  function addDays(year: number, month: number, day: number, days: number) {
-    const d = new Date(Date.UTC(year, month - 1, day + days));
-    return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
-  }
-
-  function zonedTimeToUtc(year: number, month: number, day: number, hour: number, minute: number) {
-    let guess = Date.UTC(year, month - 1, day, hour, minute);
-    for (let i = 0; i < 4; i++) {
-      const p = torontoParts(new Date(guess));
-      const got = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute);
-      const want = Date.UTC(year, month - 1, day, hour, minute);
-      const delta = want - got;
-      if (delta === 0) return guess;
-      guess += delta;
+    if (ios && standalone && !notify) {
+      return { kind: "needs-install", label: "Home Screen app", hint: "Reopen the Home Screen icon (not Safari). Notification API is still hidden." };
     }
-    return guess;
+    return { kind: "unsupported", label: "Not available", hint: "This browser has no Notifications API." };
   }
 
-  function nextSundayMorning() {
-    const p = torontoParts();
-    const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(p.weekday);
-    const minutesNow = p.hour * 60 + p.minute;
-    const targetMinutes = HOUR * 60 + MINUTE;
-    let add = (7 - dow) % 7;
-    if (add === 0 && minutesNow >= targetMinutes) add = 7;
-    const d = addDays(p.year, p.month, p.day, add);
-    return {
-      at: zonedTimeToUtc(d.year, d.month, d.day, HOUR, MINUTE),
-      label: `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")} 9:00",
-      tag: `weekly-import-${isoWeek(d.year, d.month, d.day)}`,
-    };
+  function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(base64);
+    const output = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i += 1) output[i] = raw.charCodeAt(i);
+    return output;
   }
 
-  function isSundayMorningWindow() {
-    const p = torontoParts();
-    return p.weekday === "Sun" && p.hour >= 6 && p.hour < 14;
-  }
-
-  function currentWeekTag() {
-    const p = torontoParts();
-    return `weekly-import-${isoWeek(p.year, p.month, p.day)}`;
-  }
-
-  function render() {
-    if (!statusEl || !toggleEl || !testEl || !bar) return;
-    const on = enabled() && typeof Notification !== "undefined" && Notification.permission === "granted";
-    const next = nextSundayMorning();
-    bar.classList.toggle("on", on);
-    toggleEl.textContent = on ? "Disable" : "Enable";
-    testEl.hidden = !on;
-    if (typeof Notification === "undefined") {
-      statusEl.textContent = "This browser cannot show notifications.";
-      toggleEl.hidden = true;
-      return;
-    }
-    if (Notification.permission === "denied") {
-      statusEl.textContent = "Notifications are blocked for this site.";
-      return;
-    }
-    statusEl.textContent = on
-      ? `On · next Sunday ${next.label} America/Toronto`
-      : "Off · Sunday 9:00 reminder to import the weekly report";
-  }
-
-  async function readyWorker() {
+  async function getRegistration() {
     if (!("serviceWorker" in navigator)) return null;
-    return navigator.serviceWorker.ready.catch(() => null);
+    await navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => undefined);
+    try {
+      return await navigator.serviceWorker.ready;
+    } catch {
+      return navigator.serviceWorker.getRegistration();
+    }
   }
 
-  async function notifyNow(tag: string) {
-    const reg = await readyWorker();
-    if (reg) {
-      reg.active?.postMessage({ type: "show-import-reminder", tag, url: "/?import=1" });
-      return;
+  async function ensurePermission() {
+    const env = pushEnvironment();
+    if (env.kind === "needs-install") throw new Error(env.hint);
+    if (!hasNotificationApi()) throw new Error("Notifications are not available in this browser.");
+    if (Notification.permission === "granted") return "granted";
+    if (Notification.permission === "denied") {
+      throw new Error("iOS blocked Health board. Settings → Notifications → Health tracker → Allow Notifications. Then force-quit the PWA and open the Home Screen icon again.");
     }
-    if (Notification.permission === "granted") {
-      new Notification("Import weekly health report", {
-        body: "Roll this week's Health.md days into the public board (sync health).",
-        tag,
+    const next = await Notification.requestPermission();
+    if (next !== "granted") {
+      throw new Error(
+        next === "denied"
+          ? "You tapped Don’t Allow. iOS will not ask again until you enable it in Settings → Notifications → Health tracker."
+          : "Permission was dismissed. Tap Allow + subscribe again and choose Allow on the iOS sheet.",
+      );
+    }
+    return next;
+  }
+
+  async function subscribePush() {
+    await ensurePermission();
+    const reg = await getRegistration();
+    if (!reg?.pushManager) throw new Error("Push manager missing. Reopen the Home Screen app.");
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUBLIC_KEY),
       });
     }
+    const json = sub.toJSON();
+    if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) throw new Error("Push subscription was incomplete.");
+    return { endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } };
   }
 
-  async function schedule() {
-    const next = nextSundayMorning();
-    const reg = await readyWorker();
-    reg?.active?.postMessage({ type: "schedule-import-reminder", at: next.at, tag: next.tag });
+  const statusEl = document.getElementById("remind-status");
+  const hintEl = document.getElementById("remind-hint");
+  const errorEl = document.getElementById("remind-error");
+  const deviceEl = document.getElementById("remind-device");
+  const permEl = document.getElementById("remind-perm");
+  const kvEl = document.getElementById("remind-kv");
+  const vapidEl = document.getElementById("remind-vapid");
+
+  function showError(msg) {
+    if (!errorEl) return;
+    errorEl.hidden = !msg;
+    errorEl.textContent = msg || "";
+  }
+
+  function renderEnv() {
+    const env = pushEnvironment();
+    if (deviceEl) deviceEl.textContent = env.label;
+    if (permEl) permEl.textContent = hasNotificationApi() ? Notification.permission : "hidden until installed";
+    if (hintEl) hintEl.textContent = env.hint;
+    if (statusEl) {
+      statusEl.textContent =
+        env.kind === "ready"
+          ? "Sunday 9:00 America/Toronto via Vercel cron (same closed-phone path as Split Log)."
+          : env.hint;
+    }
+  }
+
+  async function refreshStatus() {
+    renderEnv();
     try {
-      const anyReg = reg as ServiceWorkerRegistration & {
-        periodicSync?: { register: (tag: string, opts: { minInterval: number }) => Promise<void> };
-      };
-      if (anyReg?.periodicSync) {
-        await anyReg.periodicSync.register("weekly-import-reminder", {
-          minInterval: 12 * 60 * 60 * 1000,
-        });
+      const res = await fetch("/api/push/status");
+      const s = await res.json();
+      if (kvEl) kvEl.textContent = s.kvReady ? "Connected" : "Not connected";
+      if (vapidEl) vapidEl.textContent = s.vapidReady ? "Ready" : "Private key missing";
+    } catch {
+      if (kvEl) kvEl.textContent = "unreachable";
+      if (vapidEl) vapidEl.textContent = "unreachable";
+    }
+  }
+
+  async function onEnable() {
+    showError("");
+    try {
+      await ensurePermission();
+      const sub = await subscribePush();
+      const saved = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: sub }),
+      }).then((r) => r.json());
+      if (saved && saved.ok === false) throw new Error(saved.error);
+      if (statusEl) statusEl.textContent = "This iPhone is subscribed for closed-app reminders";
+      renderEnv();
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function onLocalTest() {
+    showError("");
+    try {
+      await ensurePermission();
+      const reg = await getRegistration();
+      if (!reg) throw new Error("Service worker did not register. Reopen the Home Screen app and try again.");
+      await reg.showNotification("Health board — local test", {
+        body: "Local banner from the open app. Use Send server test to hit the locked-phone path.",
+        icon: "/favicon.svg",
+        badge: "/favicon.svg",
+        tag: "health-board-debug",
+        data: { url: "/?import=1" },
+      });
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function onServerTest() {
+    showError("");
+    try {
+      const sub = await subscribePush();
+      const result = await fetch("/api/push/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: sub }),
+      }).then((r) => r.json());
+      if (!result.ok) throw new Error(result.error);
+      if (statusEl) {
+        statusEl.textContent =
+          result.result === "gone"
+            ? "Subscription expired — tap Allow again"
+            : "Server push sent — lock the phone and wait a second";
       }
-    } catch {}
-  }
-
-  async function enable() {
-    if (!("Notification" in window)) return;
-    const perm = await Notification.requestPermission();
-    if (perm !== "granted") {
-      setEnabled(false);
-      render();
-      return;
-    }
-    setEnabled(true);
-    await schedule();
-    if (isSundayMorningWindow()) await notifyNow(currentWeekTag());
-    render();
-  }
-
-  function disable() {
-    setEnabled(false);
-    render();
-  }
-
-  toggleEl?.addEventListener("click", () => {
-    if (enabled() && Notification.permission === "granted") disable();
-    else enable();
-  });
-
-  testEl?.addEventListener("click", () => notifyNow(currentWeekTag()));
-
-  if (new URLSearchParams(location.search).has("import")) {
-    bar?.classList.add("pulse");
-  }
-
-  navigator.serviceWorker?.addEventListener("message", (event) => {
-    if (event.data?.type === "import-reminder") bar?.classList.add("pulse");
-  });
-
-  if (enabled() && Notification.permission === "granted") {
-    schedule();
-    const firedKey = `health-board-fired-${currentWeekTag()}`;
-    let already = false;
-    try {
-      already = sessionStorage.getItem(firedKey) === "1";
-    } catch {}
-    if (isSundayMorningWindow() && !already) {
-      notifyNow(currentWeekTag());
-      try {
-        sessionStorage.setItem(firedKey, "1");
-      } catch {}
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err));
     }
   }
 
-  render();
+  document.getElementById("remind-enable")?.addEventListener("click", onEnable);
+  document.getElementById("remind-local")?.addEventListener("click", onLocalTest);
+  document.getElementById("remind-server")?.addEventListener("click", onServerTest);
+  refreshStatus();
 </script>
 
 <style>
   .remind {
     margin-top: 0.85rem;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.65rem;
     background: var(--card);
     border: 1px solid var(--line);
     padding: 0.7rem 0.85rem;
-  }
-  .remind.on {
-    border-color: var(--accent);
-  }
-  .remind.pulse {
-    border-color: var(--warn);
   }
   .remind-copy {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
-    min-width: 0;
   }
   .remind-copy strong {
     font-size: 0.78rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
-  .remind-copy span {
+  .remind-copy span,
+  .remind-hint {
     color: var(--muted);
     font-size: 0.78rem;
     line-height: 1.35;
+    margin: 0;
+  }
+  .remind-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem 0.75rem;
+    margin: 0;
+    font-size: 0.75rem;
+  }
+  .remind-meta dt { color: var(--muted); }
+  .remind-meta dd { margin: 0.1rem 0 0; font-weight: 600; }
+  .remind-error {
+    margin: 0;
+    color: var(--warn);
+    font-size: 0.78rem;
   }
   .remind-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.4rem;
-    flex: 0 0 auto;
   }
   .remind-actions button {
     border: 1px solid var(--line);
@@ -269,11 +266,6 @@
     cursor: pointer;
     white-space: nowrap;
   }
-  .remind-actions button:hover {
-    border-color: var(--ink);
-  }
-  .remind.on #remind-toggle {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
+  .remind-actions button:hover { border-color: var(--ink); }
+  #remind-enable { border-color: var(--accent); color: var(--accent); }
 </style>
