@@ -28,22 +28,17 @@ Tap the ? beside a stat for a plain-English explainer.
 
 ISO weeks are Monday–Sunday, America/Toronto.
 
-## Sunday import reminder (PWA)
+## Sunday import reminder (same path as Split Log)
 
-The installed PWA can nag you Sunday morning to import the week.
+Closed-phone banners use Web Push + Marketplace Redis + a Vercel cron.
 
-1. Open the live site (or Add to Home Screen).
-2. Tap **Enable** on the Weekly import bar.
-3. Allow notifications.
+1. Attach Redis on the Vercel project (Storage → Redis), same env names as Split Log.
+2. Copy `VAPID_PRIVATE_KEY` from the Split Log project (public key is already the same pair).
+3. Set `CRON_SECRET` if you want a bearer on `/api/cron/remind`.
+4. Open the **Home Screen** Health board icon (not a Safari tab).
+5. Tap **Allow + subscribe**, then **Send server test**. Lock the phone — that is the locked-phone path.
 
-What fires:
-
-- **Sunday 9:00 America/Toronto** when the browser supports notification triggers (Chromium).
-- **Periodic background sync** on Android Chrome as a backup.
-- **On open** during Sunday 6:00–14:00 Toronto if the reminder is enabled — this is the path that works in an iOS Home Screen PWA without a push server.
-- Tap the notification (or `/?import=1`) to jump back to the board. Use **Test** to fire one immediately.
-
-iOS will not wake a closed PWA on a timer by itself. If you need a lock-screen ping while the app is closed on iPhone, that needs Web Push + a Sunday cron — say if you want that next.
+Cron: Sunday 13:00 UTC (`0 13 * * 0`) = 9:00 America/Toronto during EDT.
 
 ## Local
 
