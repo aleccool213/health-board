@@ -1,4 +1,5 @@
 ---
+import Reminder from '../components/Reminder.astro';
 interface Props {
   title: string;
   description?: string;
@@ -51,6 +52,7 @@ const { title, description = "Alec Brunelle's health tracker — weekly Apple Wa
           <button class="theme" type="button" id="theme-toggle" aria-label="Toggle theme">Aa</button>
         </div>
         <p class="lede">A public weekly snapshot from Apple Watch. Daily notes stay private.</p>
+        <Reminder />
       </header>
       <main>
         <slot />
