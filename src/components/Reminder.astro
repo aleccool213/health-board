@@ -1,0 +1,279 @@
+---
+---
+<aside class="remind" id="remind-bar">
+  <div class="remind-copy">
+    <strong>Weekly import</strong>
+    <span id="remind-status">Sunday 9:00 reminder is off.</span>
+  </div>
+  <div class="remind-actions">
+    <button type="button" id="remind-toggle">Enable</button>
+    <button type="button" id="remind-test" hidden>Test</button>
+  </div>
+</aside>
+
+<script>
+  const STORAGE_KEY = "health-board-sunday-reminder";
+  const TZ = "America/Toronto";
+  const HOUR = 9;
+  const MINUTE = 0;
+
+  const statusEl = document.getElementById("remind-status");
+  const toggleEl = document.getElementById("remind-toggle");
+  const testEl = document.getElementById("remind-test");
+  const bar = document.getElementById("remind-bar");
+
+  function enabled() {
+    try {
+      return localStorage.getItem(STORAGE_KEY) === "on";
+    } catch {
+      return false;
+    }
+  }
+
+  function setEnabled(on: boolean) {
+    try {
+      localStorage.setItem(STORAGE_KEY, on ? "on" : "off");
+    } catch {}
+  }
+
+  function torontoParts(date = new Date()) {
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: TZ,
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    });
+    const bag: Record<string, string> = {};
+    for (const p of fmt.formatToParts(date)) {
+      if (p.type !== "literal") bag[p.type] = p.value;
+    }
+    return {
+      weekday: bag.weekday,
+      year: Number(bag.year),
+      month: Number(bag.month),
+      day: Number(bag.day),
+      hour: Number(bag.hour),
+      minute: Number(bag.minute),
+    };
+  }
+
+  function isoWeek(year: number, month: number, day: number) {
+    const utc = Date.UTC(year, month - 1, day);
+    const d = new Date(utc);
+    const dow = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dow);
+    const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
+    const week = Math.ceil(((d.getTime() - yearStart) / 86400000 + 1) / 7);
+    return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+  }
+
+  function addDays(year: number, month: number, day: number, days: number) {
+    const d = new Date(Date.UTC(year, month - 1, day + days));
+    return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
+  }
+
+  function zonedTimeToUtc(year: number, month: number, day: number, hour: number, minute: number) {
+    let guess = Date.UTC(year, month - 1, day, hour, minute);
+    for (let i = 0; i < 4; i++) {
+      const p = torontoParts(new Date(guess));
+      const got = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute);
+      const want = Date.UTC(year, month - 1, day, hour, minute);
+      const delta = want - got;
+      if (delta === 0) return guess;
+      guess += delta;
+    }
+    return guess;
+  }
+
+  function nextSundayMorning() {
+    const p = torontoParts();
+    const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(p.weekday);
+    const minutesNow = p.hour * 60 + p.minute;
+    const targetMinutes = HOUR * 60 + MINUTE;
+    let add = (7 - dow) % 7;
+    if (add === 0 && minutesNow >= targetMinutes) add = 7;
+    const d = addDays(p.year, p.month, p.day, add);
+    return {
+      at: zonedTimeToUtc(d.year, d.month, d.day, HOUR, MINUTE),
+      label: `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")} 9:00",
+      tag: `weekly-import-${isoWeek(d.year, d.month, d.day)}`,
+    };
+  }
+
+  function isSundayMorningWindow() {
+    const p = torontoParts();
+    return p.weekday === "Sun" && p.hour >= 6 && p.hour < 14;
+  }
+
+  function currentWeekTag() {
+    const p = torontoParts();
+    return `weekly-import-${isoWeek(p.year, p.month, p.day)}`;
+  }
+
+  function render() {
+    if (!statusEl || !toggleEl || !testEl || !bar) return;
+    const on = enabled() && typeof Notification !== "undefined" && Notification.permission === "granted";
+    const next = nextSundayMorning();
+    bar.classList.toggle("on", on);
+    toggleEl.textContent = on ? "Disable" : "Enable";
+    testEl.hidden = !on;
+    if (typeof Notification === "undefined") {
+      statusEl.textContent = "This browser cannot show notifications.";
+      toggleEl.hidden = true;
+      return;
+    }
+    if (Notification.permission === "denied") {
+      statusEl.textContent = "Notifications are blocked for this site.";
+      return;
+    }
+    statusEl.textContent = on
+      ? `On · next Sunday ${next.label} America/Toronto`
+      : "Off · Sunday 9:00 reminder to import the weekly report";
+  }
+
+  async function readyWorker() {
+    if (!("serviceWorker" in navigator)) return null;
+    return navigator.serviceWorker.ready.catch(() => null);
+  }
+
+  async function notifyNow(tag: string) {
+    const reg = await readyWorker();
+    if (reg) {
+      reg.active?.postMessage({ type: "show-import-reminder", tag, url: "/?import=1" });
+      return;
+    }
+    if (Notification.permission === "granted") {
+      new Notification("Import weekly health report", {
+        body: "Roll this week's Health.md days into the public board (sync health).",
+        tag,
+      });
+    }
+  }
+
+  async function schedule() {
+    const next = nextSundayMorning();
+    const reg = await readyWorker();
+    reg?.active?.postMessage({ type: "schedule-import-reminder", at: next.at, tag: next.tag });
+    try {
+      const anyReg = reg as ServiceWorkerRegistration & {
+        periodicSync?: { register: (tag: string, opts: { minInterval: number }) => Promise<void> };
+      };
+      if (anyReg?.periodicSync) {
+        await anyReg.periodicSync.register("weekly-import-reminder", {
+          minInterval: 12 * 60 * 60 * 1000,
+        });
+      }
+    } catch {}
+  }
+
+  async function enable() {
+    if (!("Notification" in window)) return;
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") {
+      setEnabled(false);
+      render();
+      return;
+    }
+    setEnabled(true);
+    await schedule();
+    if (isSundayMorningWindow()) await notifyNow(currentWeekTag());
+    render();
+  }
+
+  function disable() {
+    setEnabled(false);
+    render();
+  }
+
+  toggleEl?.addEventListener("click", () => {
+    if (enabled() && Notification.permission === "granted") disable();
+    else enable();
+  });
+
+  testEl?.addEventListener("click", () => notifyNow(currentWeekTag()));
+
+  if (new URLSearchParams(location.search).has("import")) {
+    bar?.classList.add("pulse");
+  }
+
+  navigator.serviceWorker?.addEventListener("message", (event) => {
+    if (event.data?.type === "import-reminder") bar?.classList.add("pulse");
+  });
+
+  if (enabled() && Notification.permission === "granted") {
+    schedule();
+    const firedKey = `health-board-fired-${currentWeekTag()}`;
+    let already = false;
+    try {
+      already = sessionStorage.getItem(firedKey) === "1";
+    } catch {}
+    if (isSundayMorningWindow() && !already) {
+      notifyNow(currentWeekTag());
+      try {
+        sessionStorage.setItem(firedKey, "1");
+      } catch {}
+    }
+  }
+
+  render();
+</script>
+
+<style>
+  .remind {
+    margin-top: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 0.7rem 0.85rem;
+  }
+  .remind.on {
+    border-color: var(--accent);
+  }
+  .remind.pulse {
+    border-color: var(--warn);
+  }
+  .remind-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .remind-copy strong {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .remind-copy span {
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  .remind-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+  }
+  .remind-actions button {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 600 0.72rem/1 "JetBrains Mono", ui-monospace, monospace;
+    padding: 0.45rem 0.6rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .remind-actions button:hover {
+    border-color: var(--ink);
+  }
+  .remind.on #remind-toggle {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+</style>
