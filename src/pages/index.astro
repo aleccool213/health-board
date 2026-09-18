@@ -97,7 +97,7 @@ const daily = days.slice(-56).map((d) => {
   <TrendChart title="Exercise minutes" unit="sum for the week" kind="bar" format="int" points={exercise} />
   <TrendChart title="Workouts by day" unit="last 8 weeks" kind="bar" format="int" points={daily} />
 
-  <h2 class="section-label">Weeks</h2>
+  <h2 class="section-label" id="weeks">Weeks</h2>
   <div class="list">
     {weeks.slice(0, 5).map((w) => (
       <a class="row" href={`/weeks/${w.data.week}`}>
