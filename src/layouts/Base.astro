@@ -1,1 +1,180 @@
-PLACEHOLDER
+---
+import '../styles/global.css';
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = "Alec Brunelle's health tracker — weekly Apple Watch averages." } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+const current = path.startsWith("/settings") ? "settings" : path.startsWith("/weeks") ? "weeks" : "board";
+const nav = [
+  { href: "/", id: "board", label: "Board" },
+  { href: "/#weeks", id: "weeks", label: "Weeks" },
+  { href: "/settings", id: "settings", label: "Settings" },
+] as const;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#dedede" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Health tracker" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("health-board-theme");
+          var d = t === "dark" || (t !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", d);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="mark" href="/">
+          <svg class="logo" viewBox="0 0 32 32" aria-hidden="true" shape-rendering="crispEdges">
+            <rect width="32" height="32" fill="#4f6ef7" />
+            <rect x="6" y="6" width="4" height="20" fill="#ffffff" />
+            <rect x="10" y="6" width="8" height="4" fill="#ffffff" />
+            <rect x="10" y="14" width="6" height="4" fill="#c5cffc" />
+            <rect x="10" y="22" width="8" height="4" fill="#ffffff" />
+          </svg>
+          Health board
+        </a>
+        <div class="header-actions">
+          <nav class="desk-nav" aria-label="Primary">
+            {nav.map((item) => (
+              <a href={item.href} class:list={[{ active: current === item.id }]}>{item.label}</a>
+            ))}
+          </nav>
+          <button class="theme" type="button" id="theme-toggle" aria-label="Toggle theme">Aa</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="shell">
+      <p class="lede">A public weekly snapshot from Apple Watch. Daily notes stay private.</p>
+      <main>
+        <slot />
+      </main>
+      <footer>
+        Apple Watch writes daily notes through Health.md. Once a week those days are rolled into averages and published here — no GPS, meds, or raw dumps. Tap a ? for what each stat means.
+      </footer>
+    </div>
+
+    <nav class="dock" aria-label="Primary">
+      <ul>
+        <li>
+          <a href="/" class:list={[{ active: current === "board" }]}>
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                <rect x="3" y="3" width="7" height="9" />
+                <rect x="14" y="3" width="7" height="5" />
+                <rect x="14" y="12" width="7" height="9" />
+                <rect x="3" y="16" width="7" height="5" />
+              </svg>
+            </span>
+            Board
+          </a>
+        </li>
+        <li>
+          <a href="/#weeks" class:list={[{ active: current === "weeks" }]}>
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                <rect x="3" y="4" width="18" height="18" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+            </span>
+            Weeks
+          </a>
+        </li>
+        <li>
+          <a href="/settings" class:list={[{ active: current === "settings" }]}>
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                <path d="M4 6h16M4 12h10M4 18h16" />
+                <circle cx="17" cy="12" r="2" />
+              </svg>
+            </span>
+            Settings
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div id="float-tip" hidden></div>
+    <script>
+      const tip = document.getElementById("float-tip");
+
+      function hideTip() {
+        if (!tip) return;
+        tip.hidden = true;
+        tip.textContent = "";
+        document.querySelectorAll(".hint.open, .plot-hit.open").forEach((el) => el.classList.remove("open"));
+      }
+
+      function showTip(btn) {
+        if (!tip) return;
+        const text = btn.getAttribute("data-tip");
+        if (!text) return;
+        document.querySelectorAll(".hint.open, .plot-hit.open").forEach((el) => el.classList.remove("open"));
+        btn.classList.add("open");
+        tip.hidden = false;
+        tip.textContent = text;
+        const pad = 10;
+        const r = btn.getBoundingClientRect();
+        const tw = tip.offsetWidth;
+        const th = tip.offsetHeight;
+        let left = r.left + r.width / 2 - tw / 2;
+        left = Math.max(pad, Math.min(left, window.innerWidth - tw - pad));
+        let top = r.bottom + 8;
+        if (top + th > window.innerHeight - pad) top = r.top - th - 8;
+        if (top < pad) top = pad;
+        tip.style.left = `${left}px`;
+        tip.style.top = `${top}px`;
+      }
+
+      document.addEventListener("click", (event) => {
+        const t = event.target;
+        if (!(t instanceof Element)) return;
+        const btn = t.closest(".hint, .plot-hit");
+        if (btn instanceof Element) {
+          if (btn.classList.contains("open")) hideTip();
+          else showTip(btn);
+          return;
+        }
+        hideTip();
+      });
+
+      window.addEventListener("scroll", hideTip, { passive: true });
+      window.addEventListener("resize", hideTip);
+
+      const toggle = document.getElementById("theme-toggle");
+      toggle?.addEventListener("click", () => {
+        const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
+        document.documentElement.classList.toggle("dark", next === "dark");
+        try { localStorage.setItem("health-board-theme", next); } catch (e) {}
+      });
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
