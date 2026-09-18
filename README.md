@@ -36,7 +36,8 @@ Closed-phone banners use Web Push + Marketplace Redis + a Vercel cron.
 2. Copy `VAPID_PRIVATE_KEY` from the Split Log project (public key is already the same pair).
 3. Set `CRON_SECRET` if you want a bearer on `/api/cron/remind`.
 4. Open the **Home Screen** Health board icon (not a Safari tab).
-5. Tap **Allow + subscribe**, then **Send server test**. Lock the phone — that is the locked-phone path.
+5. Open **Settings**.
+6. Tap **Allow + subscribe**, then **Send server test**. Lock the phone — that is the locked-phone path.
 
 Cron: Sunday 13:00 UTC (`0 13 * * 0`) = 9:00 America/Toronto during EDT.
 
