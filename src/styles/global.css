@@ -173,29 +173,11 @@ h1 { font-size: 1.7rem; font-weight: 600; margin: 0 0 0.35rem; letter-spacing: -
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
 @media (min-width: 640px) {
   .shell { padding: 1.75rem max(1.25rem, env(safe-area-inset-right)) 4rem max(1.25rem, env(safe-area-inset-left)); }
-  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   h1 { font-size: 2rem; }
 }
 .tile { background: var(--card); border: 1px solid var(--line); border-radius: 0; padding: 0.85rem 0.9rem; min-width: 0; }
-.tile .k { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 0.35rem; }
-.tile .v { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 1.35rem; font-weight: 600; margin-top: 0.25rem; font-variant-numeric: tabular-nums; }
-.tile .u { color: var(--muted); font-size: 0.8rem; }
-.hint {
-  flex: 0 0 auto;
-  width: 1.05rem;
-  height: 1.05rem;
-  border-radius: 0;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--muted);
-  font: 600 0.7rem/1 "JetBrains Mono", ui-monospace, monospace;
-  cursor: pointer;
-  padding: 0;
-}
-.hint:hover, .hint:focus-visible, .hint.open { border-color: var(--accent); color: var(--accent); }
 #float-tip {
   position: fixed;
   z-index: 40;

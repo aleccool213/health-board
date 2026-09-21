@@ -1,7 +1,8 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Stat from '../../components/Stat.astro';
+import OmStat from '@omarchy/ui/astro/OmStat.astro';
+import OmStatGrid from '@omarchy/ui/astro/OmStatGrid.astro';
 
 export async function getStaticPaths() {
   const weeks = await getCollection('weeks');
@@ -22,16 +23,16 @@ const d = entry.data;
     {d.start.toISOString().slice(0, 10)} – {d.end.toISOString().slice(0, 10)}
     {d.partial && ' · partial week'}
   </p>
-  <div class="grid">
-    <Stat label="Steps / day" value={d.steps_avg.toLocaleString()} tip="Average steps walked each day that week. A rough picture of how much he moved around." />
-    <Stat label="Sleep" value={d.sleep_hours_avg ?? '—'} unit="hours avg" tip="Average time actually asleep on nights that logged. Nights with no Watch sample are skipped." />
-    <Stat label="Resting HR" value={d.resting_hr_avg} unit="bpm" tip="How fast the heart beats when sitting still. Lower is generally fitter; illness and poor sleep can raise it." />
-    <Stat label="HRV" value={d.hrv_avg} unit="ms" tip="Heart rate variability — the tiny gaps between beats. Higher often means more recovered." />
-    <Stat label="Exercise min" value={d.exercise_min_total} tip="Apple Exercise minutes for the whole week. Time the Watch counted as elevated activity." />
-    <Stat label="Workouts" value={d.workouts} tip="Saved workout sessions that week. A walk only counts if it was started as a workout." />
-    <Stat label="Active kcal" value={d.active_kcal_total.toLocaleString()} tip="Calories Apple estimates from movement on top of resting burn, summed for the week." />
-    <Stat label="Days logged" value={d.days} tip="How many days in this Monday–Sunday week had a Health.md note." />
-  </div>
+  <OmStatGrid>
+    <OmStat label="Steps / day" value={d.steps_avg} format="locale" hint="Average steps walked each day that week. A rough picture of how much he moved around." />
+    <OmStat label="Sleep" value={d.sleep_hours_avg} format="fixed2" unit="hours avg" hint="Average time actually asleep on nights that logged. Nights with no Watch sample are skipped." />
+    <OmStat label="Resting HR" value={d.resting_hr_avg} unit="bpm" hint="How fast the heart beats when sitting still. Lower is generally fitter; illness and poor sleep can raise it." />
+    <OmStat label="HRV" value={d.hrv_avg} unit="ms" hint="Heart rate variability — the tiny gaps between beats. Higher often means more recovered." />
+    <OmStat label="Exercise min" value={d.exercise_min_total} hint="Apple Exercise minutes for the whole week. Time the Watch counted as elevated activity." />
+    <OmStat label="Workouts" value={d.workouts} hint="Saved workout sessions that week. A walk only counts if it was started as a workout." />
+    <OmStat label="Active kcal" value={d.active_kcal_total} format="locale" hint="Calories Apple estimates from movement on top of resting burn, summed for the week." />
+    <OmStat label="Days logged" value={d.days} hint="How many days in this Monday–Sunday week had a Health.md note." />
+  </OmStatGrid>
   <article style="margin-top:1.25rem;">
     <Content />
   </article>

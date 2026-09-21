@@ -1,4 +1,9 @@
 ---
+// components.css only — the library's base layer would fight the body,
+// typography and link styles this app already owns. global.css is imported
+// after it so the app still wins any overlap.
+import '@omarchy/ui/components.css';
+import '@omarchy/ui/themes/lupine.css';
 import '../styles/global.css';
 interface Props {
   title: string;

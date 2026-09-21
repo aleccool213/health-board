@@ -1,7 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import Stat from '../components/Stat.astro';
+import OmStat from '@omarchy/ui/astro/OmStat.astro';
+import OmStatGrid from '@omarchy/ui/astro/OmStatGrid.astro';
 import WorkoutGraph from '../components/WorkoutGraph.astro';
 import TrendChart from '../components/TrendChart.astro';
 import rawWorkouts from '../data/workouts.json';
@@ -75,14 +76,14 @@ const daily = days.slice(-56).map((d) => {
         – {latest.data.end.toISOString().slice(0, 10)}
         · {latest.data.days} days logged
       </p>
-      <div class="grid">
-        <Stat label="Steps / day" value={latest.data.steps_avg.toLocaleString()} tip="Average steps walked each day that week. A rough picture of how much he moved around." />
-        <Stat label="Sleep" value={latest.data.sleep_hours_avg ?? '—'} unit="hours avg" tip="Average time actually asleep on nights that logged. Nights with no Watch sample are skipped, so this is not bedtime." />
-        <Stat label="Resting HR" value={latest.data.resting_hr_avg} unit="bpm" tip="Resting heart rate: how fast the heart beats when sitting still. Lower is generally fitter, though illness and poor sleep can bump it up." />
-        <Stat label="HRV" value={latest.data.hrv_avg} unit="ms" tip="Heart rate variability — the tiny gaps between beats. Higher often means more recovered; a dip can mean stress, sickness, or a hard training week." />
-        <Stat label="Exercise" value={latest.data.exercise_min_total} unit="min" tip="Apple Exercise minutes for the whole week. Time the Watch counted as elevated activity, not gym-only." />
-        <Stat label="Workouts" value={latest.data.workouts} tip="Number of saved workout sessions that week (row, walk, strength, and so on). A walk only counts if it was started as a workout." />
-      </div>
+      <OmStatGrid>
+        <OmStat label="Steps / day" value={latest.data.steps_avg} format="locale" hint="Average steps walked each day that week. A rough picture of how much he moved around." />
+        <OmStat label="Sleep" value={latest.data.sleep_hours_avg} format="fixed2" unit="hours avg" hint="Average time actually asleep on nights that logged. Nights with no Watch sample are skipped, so this is not bedtime." />
+        <OmStat label="Resting HR" value={latest.data.resting_hr_avg} unit="bpm" hint="Resting heart rate: how fast the heart beats when sitting still. Lower is generally fitter, though illness and poor sleep can bump it up." />
+        <OmStat label="HRV" value={latest.data.hrv_avg} unit="ms" hint="Heart rate variability — the tiny gaps between beats. Higher often means more recovered; a dip can mean stress, sickness, or a hard training week." />
+        <OmStat label="Exercise" value={latest.data.exercise_min_total} unit="min" hint="Apple Exercise minutes for the whole week. Time the Watch counted as elevated activity, not gym-only." />
+        <OmStat label="Workouts" value={latest.data.workouts} hint="Number of saved workout sessions that week (row, walk, strength, and so on). A walk only counts if it was started as a workout." />
+      </OmStatGrid>
     </>
   )}
 

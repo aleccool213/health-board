@@ -2,3 +2,7 @@ node_modules/
 dist/
 .astro/
 .DS_Store
+# This repo has never tracked a lockfile. @omarchy/ui is a `#main` git
+# dependency, so builds intentionally follow the library; pin it to a tag in
+# package.json when the API settles.
+package-lock.json
