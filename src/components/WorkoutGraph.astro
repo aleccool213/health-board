@@ -1,4 +1,5 @@
 ---
+import OmActivityHeatmap from '@omarchy/ui/astro/OmActivityHeatmap.astro';
 import raw from '../data/workouts.json';
 
 type Day = { date: string; workouts: number; types: string[] };
@@ -16,47 +17,12 @@ function pretty(types: string[]) {
   return types.map((t) => labels[t] || t).join(', ');
 }
 
-function level(n: number) {
-  if (n <= 0) return 0;
-  if (n === 1) return 1;
-  if (n === 2) return 2;
-  return 3;
-}
+// The calendar grid, month labels and level buckets now come from
+// OmActivityHeatmap; this component only has to hand it a date -> count map
+// and say how a day should read.
+const counts: Record<string, number> = Object.fromEntries(days.map((d) => [d.date, d.workouts]));
+const typesByDate = new Map(days.map((d) => [d.date, d.types]));
 
-const byDate = new Map(days.map((d) => [d.date, d]));
-const start = new Date(days[0].date + 'T00:00:00');
-const end = new Date(days[days.length - 1].date + 'T00:00:00');
-
-const startMon = new Date(start);
-startMon.setDate(start.getDate() - ((start.getDay() + 6) % 7));
-const endSun = new Date(end);
-endSun.setDate(end.getDate() + ((7 - end.getDay()) % 7));
-
-const weeks: Day[][] = [];
-let col: Day[] = [];
-for (let t = startMon.getTime(); t <= endSun.getTime(); t += 86400000) {
-  const dt = new Date(t);
-  const iso = dt.toISOString().slice(0, 10);
-  col.push(byDate.get(iso) ?? { date: iso, workouts: 0, types: [] });
-  if (col.length === 7) {
-    weeks.push(col);
-    col = [];
-  }
-}
-
-const months: { label: string; index: number }[] = [];
-let last = '';
-weeks.forEach((week, i) => {
-  const cell = week[0];
-  const label = new Date(cell.date + 'T00:00:00').toLocaleString('en-CA', { month: 'short' });
-  if (label !== last) {
-    months.push({ label, index: i });
-    last = label;
-  }
-});
-
-const total = days.reduce((s, d) => s + d.workouts, 0);
-const active = days.filter((d) => d.workouts > 0).length;
 const sessions = days
   .filter((d) => d.workouts > 0)
   .slice()
@@ -75,54 +41,22 @@ function niceDate(iso: string) {
 <section class="workouts">
   <div class="workouts-head">
     <h2>Workouts</h2>
-    <p>{total} sessions across {active} days</p>
   </div>
-  <div class="graph-wrap" style={`--weeks: ${weeks.length}`}>
-    <div class="dow">
-      <span></span>
-      <span>Mon</span>
-      <span></span>
-      <span>Wed</span>
-      <span></span>
-      <span>Fri</span>
-      <span></span>
-    </div>
-    <div class="graph-panel">
-      <div class="months">
-        {weeks.map((_, i) => {
-          const m = months.find((x) => x.index === i);
-          return <span>{m ? m.label : ''}</span>;
-        })}
-      </div>
-      <div class="graph">
-        {weeks.map((week) =>
-          week.map((d) => {
-            const n = d.workouts;
-            const tip = n
-              ? `${d.date} · ${n} workout${n === 1 ? '' : 's'}${d.types.length ? ' · ' + pretty(d.types) : ''}`
-              : `${d.date} · rest`;
-            return (
-              <button
-                class={`dot hint l${level(n)}`}
-                type="button"
-                data-tip={tip}
-                aria-label={tip}
-              />
-            );
-          })
-        )}
-      </div>
-    </div>
-  </div>
-  <p class="graph-caption">Tap a square for the date.</p>
-  <div class="legend">
-    <span>Less</span>
-    <i class="dot l0"></i>
-    <i class="dot l1"></i>
-    <i class="dot l2"></i>
-    <i class="dot l3"></i>
-    <span>More</span>
-  </div>
+
+  <OmActivityHeatmap
+    values={counts}
+    start={days[0].date}
+    end={days[days.length - 1].date}
+    noun={['session', 'sessions']}
+    thresholds={[1, 2, 3]}
+    cellSize="56px"
+    caption="Tap a square for the date."
+    formatTip={({ date, value }) => {
+      if (!value) return `${date} · rest`;
+      const types = typesByDate.get(date) ?? [];
+      return `${date} · ${value} workout${value === 1 ? '' : 's'}${types.length ? ' · ' + pretty(types) : ''}`;
+    }}
+  />
 
   <ol class="session-list">
     {sessions.map((s) => (
