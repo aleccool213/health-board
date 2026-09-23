@@ -9,7 +9,7 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@omarchy/ui": "github:aleccool213/omarchy-astro-ui#main",
+    "@omarchy/ui": "github:aleccool213/omarchy-astro-ui#c17a223e524349696831a9dc748c08387116ebb3",
     "astro": "^5.13.0",
     "web-push": "^3.6.7"
   }
