@@ -121,53 +121,7 @@ const nav = [
       </ul>
     </nav>
 
-    <div id="float-tip" hidden></div>
     <script>
-      const tip = document.getElementById("float-tip");
-
-      function hideTip() {
-        if (!tip) return;
-        tip.hidden = true;
-        tip.textContent = "";
-        document.querySelectorAll(".hint.open, .plot-hit.open").forEach((el) => el.classList.remove("open"));
-      }
-
-      function showTip(btn) {
-        if (!tip) return;
-        const text = btn.getAttribute("data-tip");
-        if (!text) return;
-        document.querySelectorAll(".hint.open, .plot-hit.open").forEach((el) => el.classList.remove("open"));
-        btn.classList.add("open");
-        tip.hidden = false;
-        tip.textContent = text;
-        const pad = 10;
-        const r = btn.getBoundingClientRect();
-        const tw = tip.offsetWidth;
-        const th = tip.offsetHeight;
-        let left = r.left + r.width / 2 - tw / 2;
-        left = Math.max(pad, Math.min(left, window.innerWidth - tw - pad));
-        let top = r.bottom + 8;
-        if (top + th > window.innerHeight - pad) top = r.top - th - 8;
-        if (top < pad) top = pad;
-        tip.style.left = `${left}px`;
-        tip.style.top = `${top}px`;
-      }
-
-      document.addEventListener("click", (event) => {
-        const t = event.target;
-        if (!(t instanceof Element)) return;
-        const btn = t.closest(".hint, .plot-hit");
-        if (btn instanceof Element) {
-          if (btn.classList.contains("open")) hideTip();
-          else showTip(btn);
-          return;
-        }
-        hideTip();
-      });
-
-      window.addEventListener("scroll", hideTip, { passive: true });
-      window.addEventListener("resize", hideTip);
-
       const toggle = document.getElementById("theme-toggle");
       toggle?.addEventListener("click", () => {
         const next = document.documentElement.classList.contains("dark") ? "light" : "dark";

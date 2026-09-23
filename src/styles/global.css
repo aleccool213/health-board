@@ -170,19 +170,6 @@ h1 { font-size: 1.7rem; font-weight: 600; margin: 0 0 0.35rem; letter-spacing: -
   h1 { font-size: 2rem; }
 }
 .tile { background: var(--card); border: 1px solid var(--line); border-radius: 0; padding: 0.85rem 0.9rem; min-width: 0; }
-#float-tip {
-  position: fixed;
-  z-index: 40;
-  max-width: min(260px, calc(100vw - 20px));
-  background: var(--ink);
-  color: var(--card);
-  border: 1px solid var(--ink);
-  border-radius: 0;
-  padding: 0.55rem 0.65rem;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  pointer-events: none;
-}
 .list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.5rem; }
 .row {
   display: grid;
@@ -219,3 +206,4 @@ article { background: var(--card); border: 1px solid var(--line); border-radius:
 }
 .workouts-head h2 { font-size: 1rem; color: var(--muted); font-weight: 500; margin: 0; }
 .workouts-head p { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.trends { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }

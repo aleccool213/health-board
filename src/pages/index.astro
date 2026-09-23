@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 import OmStat from '@omarchy/ui/astro/OmStat.astro';
 import OmStatGrid from '@omarchy/ui/astro/OmStatGrid.astro';
 import WorkoutGraph from '../components/WorkoutGraph.astro';
-import TrendChart from '../components/TrendChart.astro';
+import OmTimeSeriesChart from '@omarchy/ui/astro/OmTimeSeriesChart.astro';
 import rawWorkouts from '../data/workouts.json';
 
 type Day = { date: string; workouts: number; types: string[] };
@@ -91,12 +91,14 @@ const daily = days.slice(-56).map((d) => {
 
   <h2 class="section-label">Trends</h2>
   <p class="chart-note">Weekly averages published here. Daily Health.md notes stay private. Tap a point for the week.</p>
-  <TrendChart title="Steps / day" unit="weekly avg" kind="area" format="k" points={steps} />
-  <TrendChart title="Sleep" unit="hours avg" kind="line" format="fixed1" points={sleep} />
-  <TrendChart title="Resting HR" unit="bpm" kind="line" format="int" points={rhr} />
-  <TrendChart title="HRV" unit="ms" kind="line" format="int" points={hrv} />
-  <TrendChart title="Exercise minutes" unit="sum for the week" kind="bar" format="int" points={exercise} />
-  <TrendChart title="Workouts by day" unit="last 8 weeks" kind="bar" format="int" points={daily} />
+  <div class="trends">
+    <OmTimeSeriesChart title="Steps / day" unit="weekly avg" kind="area" format="k" markers series={[{ key: 'steps', label: 'Steps / day', points: steps }]} />
+    <OmTimeSeriesChart title="Sleep" unit="hours avg" kind="line" format="fixed1" markers series={[{ key: 'sleep', label: 'Sleep', points: sleep }]} />
+    <OmTimeSeriesChart title="Resting HR" unit="bpm" kind="line" format="int" markers series={[{ key: 'rhr', label: 'Resting HR', points: rhr }]} />
+    <OmTimeSeriesChart title="HRV" unit="ms" kind="line" format="int" markers series={[{ key: 'hrv', label: 'HRV', points: hrv }]} />
+    <OmTimeSeriesChart title="Exercise minutes" unit="sum for the week" kind="bar" format="int" series={[{ key: 'exercise', label: 'Exercise minutes', points: exercise }]} />
+    <OmTimeSeriesChart title="Workouts by day" unit="last 8 weeks" kind="bar" format="int" series={[{ key: 'daily', label: 'Workouts', points: daily }]} />
+  </div>
 
   <h2 class="section-label" id="weeks">Weeks</h2>
   <div class="list">
