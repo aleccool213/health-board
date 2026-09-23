@@ -1,10 +1,17 @@
 ---
-// components.css only — the library's base layer would fight the body,
-// typography and link styles this app already owns. global.css is imported
-// after it so the app still wins any overlap.
+// Order matters:
+// 1. components.css — the library's om- classes and tokens, without its base
+//    layer, which would fight the body, typography and links this app owns.
+// 2. lupine.css — the colour theme, light + dark, driven by .dark/.light on <html>.
+// 3. compat.css — maps this app's older names (--bg, --ink, --line, --card …)
+//    onto the theme, so global.css keeps working without a palette of its own.
+// 4. global.css — this app's layout. Last, so it wins any overlap.
 import '@omarchy/ui/components.css';
 import '@omarchy/ui/themes/lupine.css';
+import '@omarchy/ui/compat.css';
 import '../styles/global.css';
+import OmThemeScript from '@omarchy/ui/astro/OmThemeScript.astro';
+import OmThemeToggle from '@omarchy/ui/astro/OmThemeToggle.astro';
 interface Props {
   title: string;
   description?: string;
@@ -37,15 +44,9 @@ const nav = [
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script is:inline>
-      (function () {
-        try {
-          var t = localStorage.getItem("health-board-theme");
-          var d = t === "dark" || (t !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-          document.documentElement.classList.toggle("dark", d);
-        } catch (e) {}
-      })();
-    </script>
+    {/* Sets .dark/.light on <html> before first paint. legacyKey carries a
+        choice saved under this app's old key over to the shared "om-theme". */}
+    <OmThemeScript legacyKey="health-board-theme" />
   </head>
   <body>
     <header class="site-header">
@@ -66,7 +67,7 @@ const nav = [
               <a href={item.href} class:list={[{ active: current === item.id }]}>{item.label}</a>
             ))}
           </nav>
-          <button class="theme" type="button" id="theme-toggle" aria-label="Toggle theme">Aa</button>
+          <OmThemeToggle />
         </div>
       </div>
     </header>
@@ -122,13 +123,6 @@ const nav = [
     </nav>
 
     <script>
-      const toggle = document.getElementById("theme-toggle");
-      toggle?.addEventListener("click", () => {
-        const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
-        document.documentElement.classList.toggle("dark", next === "dark");
-        try { localStorage.setItem("health-board-theme", next); } catch (e) {}
-      });
-
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker.register("/sw.js").catch(() => {});
