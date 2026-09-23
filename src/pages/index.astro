@@ -78,10 +78,10 @@ const daily = days.slice(-56).map((d) => {
       </p>
       <OmStatGrid>
         <OmStat label="Steps / day" value={latest.data.steps_avg} format="locale" hint="Average steps walked each day that week. A rough picture of how much he moved around." />
-        <OmStat label="Sleep" value={latest.data.sleep_hours_avg} format="fixed2" unit="hours avg" hint="Average time actually asleep on nights that logged. Nights with no Watch sample are skipped, so this is not bedtime." />
-        <OmStat label="Resting HR" value={latest.data.resting_hr_avg} unit="bpm" hint="Resting heart rate: how fast the heart beats when sitting still. Lower is generally fitter, though illness and poor sleep can bump it up." />
-        <OmStat label="HRV" value={latest.data.hrv_avg} unit="ms" hint="Heart rate variability — the tiny gaps between beats. Higher often means more recovered; a dip can mean stress, sickness, or a hard training week." />
-        <OmStat label="Exercise" value={latest.data.exercise_min_total} unit="min" hint="Apple Exercise minutes for the whole week. Time the Watch counted as elevated activity, not gym-only." />
+        <OmStat label="Sleep" value={latest.data.sleep_hours_avg} format="fixed2" unit="hours avg" unitPlacement="block" hint="Average time actually asleep on nights that logged. Nights with no Watch sample are skipped, so this is not bedtime." />
+        <OmStat label="Resting HR" value={latest.data.resting_hr_avg} unit="bpm" unitPlacement="block" hint="Resting heart rate: how fast the heart beats when sitting still. Lower is generally fitter, though illness and poor sleep can bump it up." />
+        <OmStat label="HRV" value={latest.data.hrv_avg} unit="ms" unitPlacement="block" hint="Heart rate variability — the tiny gaps between beats. Higher often means more recovered; a dip can mean stress, sickness, or a hard training week." />
+        <OmStat label="Exercise" value={latest.data.exercise_min_total} unit="min" unitPlacement="block" hint="Apple Exercise minutes for the whole week. Time the Watch counted as elevated activity, not gym-only." />
         <OmStat label="Workouts" value={latest.data.workouts} hint="Number of saved workout sessions that week (row, walk, strength, and so on). A walk only counts if it was started as a workout." />
       </OmStatGrid>
     </>
