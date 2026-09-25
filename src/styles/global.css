@@ -152,6 +152,9 @@ a:hover { text-decoration: underline; }
 .mark:hover { text-decoration: none; }
 .logo { width: 2rem; height: 2rem; display: block; }
 .theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--line);
   background: var(--card);
   color: var(--ink);
@@ -161,6 +164,10 @@ a:hover { text-decoration: underline; }
   cursor: pointer;
 }
 .theme:hover { border-color: var(--ink); }
+.share .icon-check { display: none; }
+.share.copied { border-color: var(--accent); color: var(--accent); }
+.share.copied .icon-share { display: none; }
+.share.copied .icon-check { display: inline-flex; }
 .lede { color: var(--muted); margin: 0 0 1.25rem; line-height: 1.45; }
 footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
 h1 { font-size: 1.7rem; font-weight: 600; margin: 0 0 0.35rem; letter-spacing: -0.04em; }
