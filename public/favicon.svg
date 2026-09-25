@@ -1,7 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
-  <rect width="32" height="32" fill="#4f6ef7"/>
-  <rect x="6" y="6" width="4" height="20" fill="#ffffff"/>
-  <rect x="10" y="6" width="8" height="4" fill="#ffffff"/>
-  <rect x="10" y="14" width="6" height="4" fill="#c5cffc"/>
-  <rect x="10" y="22" width="8" height="4" fill="#ffffff"/>
+  <rect x="0" y="0" width="32" height="32" fill="#4f6ef7"/>
+  <path fill="#ffffff" d="M6 6h6v1h-6zM20 6h6v1h-6zM6 7h6v1h-6zM20 7h6v1h-6zM4 8h10v1h-10zM18 8h10v1h-10zM4 9h7v1h-7zM18 9h10v1h-10zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h14v1h-14zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h14v1h-14zM4 12h7v1h-7zM12 12h1v1h-1zM14 12h14v1h-14zM4 13h7v1h-7zM12 13h1v1h-1zM14 13h14v1h-14zM4 14h7v1h-7zM12 14h1v1h-1zM14 14h14v1h-14zM12 15h1v1h-1zM14 15h1v1h-1zM6 16h7v1h-7zM14 16h1v1h-1zM16 16h10v1h-10zM6 17h7v1h-7zM14 17h1v1h-1zM16 17h10v1h-10zM8 18h5v1h-5zM14 18h1v1h-1zM16 18h8v1h-8zM8 19h5v1h-5zM14 19h1v1h-1zM16 19h8v1h-8zM10 20h3v1h-3zM14 20h1v1h-1zM16 20h6v1h-6zM10 21h3v1h-3zM16 21h6v1h-6zM12 22h8v1h-8zM12 23h8v1h-8zM14 24h4v1h-4zM14 25h4v1h-4z"/>
+  <path fill="#c5cffc" d="M0 15h4v1h-4zM28 15h4v1h-4z"/>
 </svg>

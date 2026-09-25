@@ -5,6 +5,8 @@ interface Props {
   description?: string;
 }
 const { title, description = "Alec Brunelle's health tracker — weekly Apple Watch averages." } = Astro.props;
+const ogImage = new URL("/og.png", Astro.site).href;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 const current = path.startsWith("/settings") ? "settings" : path.startsWith("/weeks") ? "weeks" : "board";
 const nav = [
@@ -26,8 +28,23 @@ const nav = [
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Health tracker" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Health board" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Health board — weekly Apple Watch averages" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -46,13 +63,7 @@ const nav = [
     <header class="site-header">
       <div class="site-header-inner">
         <a class="mark" href="/">
-          <svg class="logo" viewBox="0 0 32 32" aria-hidden="true" shape-rendering="crispEdges">
-            <rect width="32" height="32" fill="#4f6ef7" />
-            <rect x="6" y="6" width="4" height="20" fill="#ffffff" />
-            <rect x="10" y="6" width="8" height="4" fill="#ffffff" />
-            <rect x="10" y="14" width="6" height="4" fill="#c5cffc" />
-            <rect x="10" y="22" width="8" height="4" fill="#ffffff" />
-          </svg>
+<img class="logo" src="/favicon.svg" alt="" width="32" height="32" />
           Health board
         </a>
         <div class="header-actions">

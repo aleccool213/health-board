@@ -1,7 +1,7 @@
 /* Health board service worker — local + Web Push banners (same path as Split Log) */
 
-const CACHE = "health-board-v3";
-const PRECACHE = ["/", "/manifest.webmanifest", "/favicon.svg"];
+const CACHE = "health-board-v4";
+const PRECACHE = ["/", "/manifest.webmanifest", "/favicon.svg", "/icon-192.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
@@ -57,7 +57,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || "Health board", {
       body: payload.body || "Import this week's health report.",
-      icon: "/favicon.svg",
+      icon: "/icon-192.png",
       badge: "/favicon.svg",
       data: { url: payload.url || "/?import=1" },
     }),

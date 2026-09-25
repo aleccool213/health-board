@@ -174,7 +174,7 @@ import { VAPID_PUBLIC_KEY } from "../lib/push-vapid";
       if (!reg) throw new Error("Service worker did not register. Reopen the Home Screen app and try again.");
       await reg.showNotification("Health board — local test", {
         body: "Local banner from the open app. Use Send server test to hit the locked-phone path.",
-        icon: "/favicon.svg",
+        icon: "/icon-192.png",
         badge: "/favicon.svg",
         tag: "health-board-debug",
         data: { url: "/?import=1" },
